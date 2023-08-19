@@ -5,6 +5,7 @@ import json
 import random
 import numpy as np
 import tqdm
+import math
 from utils.metrics_hh import create_reward_fn
 get_score, reward_batch_size = create_reward_fn()
 
@@ -80,7 +81,7 @@ def extract_train_data(root_dir, if_score, if_rerank, training_stage_num = None,
     
 
     if if_score:
-        batch_size = reward_batch_size / 2 # default
+        batch_size = int(math.floor(reward_batch_size / 2)) # default
         for index in tqdm.tqdm(range(0,len(training_data),batch_size),desc="rewarding"):
             prefixes = []
             suffixes = []
