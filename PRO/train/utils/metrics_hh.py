@@ -27,7 +27,7 @@ def create_reward_fn_2():
     model_device = "cuda:{}".format(torch.cuda.device_count() - 1)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.truncation_side = "left"
-    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config).to(model_device)
+    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config, device_map="auto")
     reward_model.eval()
 
     def get_score(prefixes, suffixes):
@@ -57,7 +57,7 @@ def create_reward_fn_3():
     model_device = "cuda:{}".format(torch.cuda.device_count() - 1)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.truncation_side = "left"
-    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config).to(model_device)
+    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config, device_map="auto")
     reward_model.eval()
 
     def get_score(prefixes, suffixes):
