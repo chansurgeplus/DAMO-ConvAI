@@ -188,8 +188,8 @@ if __name__ == "__main__":
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','harmless-base'),'train.jsonl.gz',global_index_generator,split='train'),
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-base'),'train.jsonl.gz',global_index_generator,split='train'),
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-online'),'train.jsonl.gz',global_index_generator,split='train'),
-    hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-rejection'),'train.jsonl.gz',global_index_generator,split='train'),
+    hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-rejection-sampled'),'train.jsonl.gz',global_index_generator,split='train'),
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','harmless-base'),'test.jsonl.gz',global_index_generator,split='dev')
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-base'),'test.jsonl.gz',global_index_generator,split='dev')
     hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-online'),'test.jsonl.gz',global_index_generator,split='dev')
-    hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-rejection'),'test.jsonl.gz',global_index_generator,split='dev')
+    hhrlhf_preprocess(os.path.join('..','..','data','raw_data','hhrlhf','helpful-rejection-sampled'),'test.jsonl.gz',global_index_generator,split='dev')
