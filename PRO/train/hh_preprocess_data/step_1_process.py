@@ -3,6 +3,7 @@ import re
 import pprint
 import os
 import tqdm
+import gzip
 
 def gen_global_index():
     index = 0
@@ -16,7 +17,7 @@ Roles = {
 }
 
 def hhrlhf_preprocess(path,filename,index_generator,split='train'):
-    with open(os.path.join(path,filename),'r', encoding='utf-8') as f:
+    with gzip.open(os.path.join(path,filename),'r', encoding='utf-8') as f:
         raw = f.readlines()
     
     data = []
