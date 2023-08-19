@@ -80,6 +80,6 @@ def create_reward_fn_3():
         
         return rewards.view(-1)
     
-    return get_score, 16
+    return get_score, 8
 
 create_reward_fn = create_reward_fn_3
