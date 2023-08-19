@@ -5,10 +5,17 @@ os.environ["TRANSFORMERS_CACHE"] = os.path.join("..","..","transformers_cache","
 os.environ["HF_HOME"] = os.path.join("..","..","transformers_cache","datasets")
 import torch
 import torch.nn as nn
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, BitsAndBytesConfig
 from dataclasses import dataclass
 import utils.reward_model
 import nltk
+
+quantization_config = BitsAndBytesConfig(
+   load_in_4bit=True,
+   bnb_4bit_quant_type="nf4",
+   bnb_4bit_use_double_quant=True,
+   bnb_4bit_compute_dtype=torch.bfloat16
+)
 
 def get_bleu(hyp, ref):
     hyp = hyp.strip()
@@ -20,7 +27,7 @@ def create_reward_fn_2():
     model_device = "cuda:{}".format(torch.cuda.device_count() - 1)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.truncation_side = "left"
-    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name).to(model_device)
+    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config).to(model_device)
     reward_model.eval()
 
     def get_score(prefixes, suffixes):
@@ -50,7 +57,7 @@ def create_reward_fn_3():
     model_device = "cuda:{}".format(torch.cuda.device_count() - 1)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.truncation_side = "left"
-    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name).to(model_device)
+    reward_model = AutoModelForSequenceClassification.from_pretrained(model_name, quantization_config = quantization_config).to(model_device)
     reward_model.eval()
 
     def get_score(prefixes, suffixes):

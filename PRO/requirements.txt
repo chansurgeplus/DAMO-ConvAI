@@ -11,3 +11,4 @@ deepspeed==0.8.1
 evaluate
 rouge_score
 tensorboard
+bitsandbytes
