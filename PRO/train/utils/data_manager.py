@@ -35,7 +35,7 @@ class JSONPreProcessedDataset(Dataset):
             pbar = tqdm(value)
             for item in pbar:
                 pass
-            pbar.set_description("Loading the dataset")
+                pbar.set_description("Loading the dataset")
         
         return obj
     
