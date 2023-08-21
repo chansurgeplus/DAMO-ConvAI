@@ -8,6 +8,7 @@ import math
 import random
 import numpy as np
 import torch
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
 from transformers import (
@@ -23,9 +24,20 @@ class JSONPreProcessedDataset(Dataset):
     def __init__(self, data_dir: str, data_file_name: str):
         data_file_path = os.path.join(data_dir, data_file_name)
         with open(data_file_path, "r") as data_file:
-            self.data = json.load(data_file)
+            self.data = json.load(data_file, object_hook=JSONPreProcessedDataset.hook_report_progress)
         
         self.dataset_length = len(self.data)
+    
+    @staticmethod
+    def hook_report_progress(obj):
+        value = obj.get("features")
+        if value:
+            pbar = tqdm(value)
+            for item in pbar:
+                pass
+            pbar.set_description("Loading the dataset")
+        
+        return obj
     
     def __len__(self):
         return self.dataset_length
