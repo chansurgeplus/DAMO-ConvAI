@@ -2,11 +2,13 @@ from datasets import load_dataset
 from datasets import Dataset
 from utils.config import args
 from dataclasses import dataclass
+import os
+import json
 import math
 import random
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
 from transformers import (
     AutoConfig,
@@ -15,6 +17,22 @@ from transformers import (
     GPT2Tokenizer,
     DataCollatorWithPadding,
 )
+
+class JSONPreProcessedDataset(Dataset):
+
+    def __init__(self, data_dir: str, data_file_name: str):
+        data_file_path = os.path.join(data_dir, data_file_name)
+        with open(data_file_path, "r") as data_file:
+            self.data = json.load(data_file)
+        
+        self.dataset_length = len(self.data)
+    
+    def __len__(self):
+        return self.dataset_length
+    
+    def __getitem__(self, idx):
+        return self.data[idx]
+
 
 class HH_DataManager():
     def __init__(self, config, training_stage, tokenizer_path = args.model_name_or_path):
@@ -127,12 +145,13 @@ class HH_DataManager():
         extension='json', 
         stream = None, 
     ):
-        raw_datasets = load_dataset(extension, data_dir = data_file_path, data_files = data_file_name, streaming=True if stream != None else False, split="train")
+        # raw_datasets = load_dataset(extension, data_dir = data_file_path, data_files = data_file_name, streaming=True if stream != None else False, split="train")
+        raw_datasets = JSONPreProcessedDataset(data_dir = data_file_path, data_file_name = data_file_name)
 
         dataloader = DataLoader(
             raw_datasets, 
             shuffle=True,
-            collate_fn=data_collator, 
+            collate_fn=data_collator,
             batch_size=args.per_device_train_batch_size
         )
 
