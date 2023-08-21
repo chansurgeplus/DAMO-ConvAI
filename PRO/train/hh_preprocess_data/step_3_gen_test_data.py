@@ -81,7 +81,7 @@ def extract_train_data(root_dir, if_score, if_rerank, training_stage_num = None,
 
     # score and re-rank
     if if_score:
-        batch_size = reward_batch_size / 2 # default
+        batch_size = int(math.floor(reward_batch_size / 2)) / 2 # default
         for index in tqdm.tqdm(range(0,len(training_data),batch_size),desc="rewarding"):
             prefixes = []
             suffixes = []

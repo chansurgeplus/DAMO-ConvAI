@@ -138,6 +138,7 @@ if __name__ == '__main__':
     total_dev_data = harmless_base_dev_data + helpful_base_dev_data + helpful_online_dev_data + helpful_rejection_dev_data
     random.shuffle(total_dev_data)
     total_dev_data = total_dev_data[:280]
+    os.makedirs(os.path.join('..','..','data','hh_dev'), exist_ok=True)
     with open(os.path.join('..','..','data','hh_dev','sampled_dev.json'),'w', encoding='utf-8') as f:
         for sample in total_dev_data:
             f.write(json.dumps(sample,ensure_ascii=False)+'\n')
