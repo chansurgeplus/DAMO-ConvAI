@@ -422,12 +422,15 @@ class ProcessManager():
                 save_function=self.accelerator.save,
             )
 
-            path_parent_dir = str(Path(path).parent.absolute())
-            shutil.make_archive(f"{path_parent_dir}/model-chkpt-{completed_steps}", "zip", path)
-
             if args.s3_enabled == 1:
+                path_parent_dir = str(Path(path).parent.absolute())
+                shutil.make_archive(f"{path_parent_dir}/model-chkpt-{completed_steps}", "zip", path)
+                
                 self.logger.info(f"Uploading checkpoint {completed_steps} to S3")
                 self.s3_client.upload_file(f"{path_parent_dir}/model-chkpt-{completed_steps}.zip", "pro-testing", f"{args.index}/pro_{self.exp_ts}/model-chkpt-{completed_steps}.zip")
                 self.logger.info(f"Uploaded checkpoint {completed_steps} to S3")
+
+                os.remove(f"{path_parent_dir}/model-chkpt-{completed_steps}.zip")
+                shutil.rmtree(path)
         else:
             self.logger.error('No save path!', main_process_only=True)
