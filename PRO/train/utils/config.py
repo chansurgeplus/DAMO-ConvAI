@@ -100,6 +100,11 @@ def parse_args():
         type=str,
         default="logs",
     )
+    parser.add_argument(
+        "--s3_enabled",
+        type=int,
+        default=1,
+    )
     args = parser.parse_args()
 
     return args

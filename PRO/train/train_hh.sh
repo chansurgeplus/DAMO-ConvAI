@@ -15,6 +15,7 @@ accelerate launch --num_processes 1 --config_file ds_config.yaml main.py \
     --output_dir $root_dir/checkpoints/index_$id/stage_$ranking_len \
     --log_path $root_dir/logs/$id/$ranking_len \
     --index $id \
+    --s3_enabled 1 \
     --seed 42 \
     --temperature 1 \
     --sft_weight 0.05 \

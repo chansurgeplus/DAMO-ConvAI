@@ -19,6 +19,9 @@ from transformers import (
     AutoModelForCausalLM,
 )
 import time
+from pathlib import Path
+import shutil
+import boto3
 
 if args.task == "hh":
     from utils.metrics_hh import create_reward_fn
@@ -30,8 +33,8 @@ else:
 
 class WanDBThroughLogger(Logger):
 
-    def __init__(self, accelerator):
-        wandb.init(project="preference-ranking-optimization", name=f"pro_{str(time.time())}")
+    def __init__(self, accelerator, ts):
+        wandb.init(project="preference-ranking-optimization", name=f"pro_{str(ts)}")
         self.logger = get_logger(__name__)
     
     def log_loss(self, step: int, **kwargs):
@@ -80,8 +83,18 @@ class ProcessManager():
         # set model
         self.model = AutoModelForCausalLM.from_pretrained(self.model_path,config=self.model_config)
         self.model.resize_token_embeddings(len(self.data_manager.tokenizer))
+
+        self.exp_ts = time.time()
         
-        self.logger = WanDBThroughLogger(self.accelerator)
+        self.logger = WanDBThroughLogger(self.accelerator, self.exp_ts)
+
+        if args.s3_enabled == 1:
+            self.s3_client = boto3.client(
+                's3',
+                aws_access_key_id="GOOGHB72G5FYQ572Q4LJMUT4",
+                aws_secret_access_key="AnnBSNp0RKKzHpFeDRX4AoyBlTpmWjXPDNonG/6r",
+                endpoint_url="https://storage.googleapis.com",
+            )
     
     def compute_loss(self, model, batch, print_loss):
         """
@@ -343,7 +356,7 @@ class ProcessManager():
                                     best_step = completed_steps
                                     self.logger.info(f"Step {completed_steps} checkpoint with higher Dev avg reward (the best checkpoint so far)")
                                     last_dev_reward = dev_reward
-                                self.save_checkpoint(model_to_save,self.data_manager.tokenizer,os.path.join(args.output_dir, 'step_{}'.format(completed_steps)))
+                                self.save_checkpoint(model_to_save,self.data_manager.tokenizer,os.path.join(args.output_dir, 'step_{}'.format(completed_steps)), completed_steps)
 
                                 model_to_save = None
 
@@ -353,7 +366,7 @@ class ProcessManager():
             self.accelerator.wait_for_everyone()
             if self.accelerator.sync_gradients and self.accelerator.is_main_process:
                 model_to_save = self.accelerator.unwrap_model(model)
-                self.save_checkpoint(model_to_save,self.data_manager.tokenizer,os.path.join(args.output_dir, 'epoch_{}'.format(epoch)))
+                self.save_checkpoint(model_to_save,self.data_manager.tokenizer,os.path.join(args.output_dir, 'epoch_{}'.format(epoch)), completed_steps)
                 self.logger.info(f"Epoch {epoch} checkpoint has been saved.")
                 model_to_save = None
         if args.do_validation and self.accelerator.is_main_process:
@@ -399,7 +412,7 @@ class ProcessManager():
 
         return infer_data
 
-    def save_checkpoint(self, model, tokenizer, path):
+    def save_checkpoint(self, model, tokenizer, path, completed_steps):
         if path is not None and path != '':
             os.makedirs(path, exist_ok=True)
             tokenizer.save_pretrained(path)
@@ -408,5 +421,13 @@ class ProcessManager():
                 is_main_process=self.accelerator.is_main_process, 
                 save_function=self.accelerator.save,
             )
+
+            path_parent_dir = str(Path(path).parent.absolute())
+            shutil.make_archive(f"{path_parent_dir}/model-chkpt-{completed_steps}", "zip", path)
+
+            if args.s3_enabled == 1:
+                self.logger.info(f"Uploading checkpoint {completed_steps} to S3")
+                self.s3_client.upload_file(f"{path_parent_dir}/model-chkpt-{completed_steps}.zip", "pro-testing", f"{args.index}/pro_{self.exp_ts}/model-chkpt-{completed_steps}.zip")
+                self.logger.info(f"Uploaded checkpoint {completed_steps} to S3")
         else:
             self.logger.error('No save path!', main_process_only=True)

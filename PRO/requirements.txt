@@ -12,3 +12,4 @@ evaluate
 rouge_score
 tensorboard
 bitsandbytes
+boto3
