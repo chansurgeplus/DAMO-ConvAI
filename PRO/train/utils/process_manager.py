@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from accelerate.logging import get_logger
 from logging import Logger
+import wandb
 from .data_manager import HH_DataManager, Summarize_DataManager
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
@@ -17,6 +18,8 @@ from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
 )
+import time
+
 if args.task == "hh":
     from utils.metrics_hh import create_reward_fn
 elif args.task == "summarize":
@@ -28,21 +31,22 @@ else:
 class WanDBThroughLogger(Logger):
 
     def __init__(self, accelerator):
-        self.wandb = accelerator.get_tracker('wandb')
+        wandb.init(project="preference-ranking-optimization", name=f"pro_{str(time.time())}")
         self.logger = get_logger(__name__)
     
-    def log_loss(self, loss: float, step: int):
-        self.wandb.log({
-            "loss": loss
-        }, step=step)
+    def log_loss(self, step: int, **kwargs):
+        wandb.log({
+            **kwargs,
+            "step": step,
+        })
     
     def info(self, msg, **kwargs):
         if type(msg) == str:
-            self.wandb.log({
+            wandb.log({
                 "message": msg,
             })
         elif type(msg) == dict:
-            self.wandb.log(msg, **kwargs)
+            wandb.log(msg, **kwargs)
         
         self.logger.info(msg)
 
@@ -304,13 +308,11 @@ class ProcessManager():
                             print_loss_info += " | sft_loss: {:.4f}".format(print_loss[training_stage-1])
                             writer.add_scalar("stage_{}/sft_loss".format(training_stage), print_loss[training_stage-1], completed_steps)
 
-                            # self.logger.info(msg={
-                            #     f"stage_{training_stage}_loss": total_loss,
-                            #     **rank_losses,
-                            #     "sft_loss": print_loss[training_stage-1]
-                            # }, step=completed_steps)
-
-                            self.logger.log_loss(print_loss[training_stage-1], step=completed_steps)
+                            self.logger.log_loss(step=completed_steps, **{
+                                f"stage_{training_stage}_loss": total_loss,
+                                **rank_losses,
+                                "sft_loss": print_loss[training_stage-1]
+                            })
                             
                             self.logger.info(f"Step {completed_steps} | " + print_loss_info)
                             writer.add_scalar("stage_{}/loss".format(training_stage), total_loss, completed_steps) # record on tensorboard                      

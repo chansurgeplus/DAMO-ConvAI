@@ -10,23 +10,10 @@ from utils.process_manager import ProcessManager
 import gc
 import torch
 from datetime import timedelta
-import time
 
 
 kwargs = InitProcessGroupKwargs(timeout=timedelta(seconds=5400))
-accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps, log_with="wandb", kwargs_handlers=[kwargs])
-
-# Initialize Logger
-accelerator.init_trackers(
-    project_name="preference-ranking-optimization",
-    config=kwargs,
-    init_kwargs={
-        "wandb": {
-            "name": f"pro_{str(time.time())}",
-        },
-    }
-)
-
+accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps, kwargs_handlers=[kwargs])
 args.gradient_accumulation_steps = accelerator.gradient_accumulation_steps
 log_filename = ""
 if args.do_train:
