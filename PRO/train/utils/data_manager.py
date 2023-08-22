@@ -23,21 +23,13 @@ class JSONPreProcessedDataset(Dataset):
 
     def __init__(self, data_dir: str, data_file_name: str):
         data_file_path = os.path.join(data_dir, data_file_name)
-        with open(data_file_path, "r") as data_file:
-            self.data = json.load(data_file, object_hook=JSONPreProcessedDataset.hook_report_progress)
+        with open(data_file_path, "r", encoding="utf-8") as data_file:
+            lines = data_file.readlines()
+            self.data = []
+            for line in tqdm(lines, desc="Loading Dataset..."):
+                self.data.append(json.loads(line))
         
         self.dataset_length = len(self.data)
-    
-    @staticmethod
-    def hook_report_progress(obj):
-        value = obj.get("features")
-        if value:
-            pbar = tqdm(value)
-            for item in pbar:
-                pass
-                pbar.set_description("Loading the dataset")
-        
-        return obj
     
     def __len__(self):
         return self.dataset_length
