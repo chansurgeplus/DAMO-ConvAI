@@ -62,8 +62,8 @@ class GPTNeoXRewardModel(GPTNeoXPreTrainedModel):
             inputs_embeds=inputs_embeds,
             use_cache=use_cache,
             return_dict=return_dict,
-        ).to(model_device)
-        hidden_states = outputs[0]
+        )
+        hidden_states = outputs[0].to(model_device)
 
         attention_mask_ond = attention_mask.to(model_device)
         if self.pooling == "mean":
