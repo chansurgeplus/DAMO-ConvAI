@@ -54,6 +54,7 @@ class GPTNeoXRewardModel(GPTNeoXPreTrainedModel):
         use_cache: Optional[bool] = None,
         return_dict: Optional[bool] = True,
     ) -> GPTNeoXRewardModelOutput:
+        model_device = next(self.gpt_neox.parameters()).device
         outputs = self.gpt_neox(
             input_ids,
             attention_mask=attention_mask,
@@ -61,19 +62,20 @@ class GPTNeoXRewardModel(GPTNeoXPreTrainedModel):
             inputs_embeds=inputs_embeds,
             use_cache=use_cache,
             return_dict=return_dict,
-        )
-
+        ).to(model_device)
         hidden_states = outputs[0]
+
+        attention_mask_ond = attention_mask.to(model_device)
         if self.pooling == "mean":
-            if attention_mask is None:
+            if attention_mask_ond is None:
                 pooled = hidden_states.mean(dim=1)
             else:
-                pooled = (hidden_states * attention_mask).sum(dim=1) / attention_mask.sum(dim=1)
+                pooled = (hidden_states * attention_mask_ond).sum(dim=1) / attention_mask_ond.sum(dim=1)
         elif self.pooling == "last":
-            if attention_mask is None:
+            if attention_mask_ond is None:
                 pooled = hidden_states[:, -1]
             else:
-                last_idx = attention_mask.cumsum(dim=1).argmax(dim=1)
+                last_idx = attention_mask_ond.cumsum(dim=1).argmax(dim=1)
                 pooled = hidden_states.gather(1, last_idx.view(-1, 1, 1).expand(-1, 1, hidden_states.size(-1))).squeeze(
                     1
                 )
