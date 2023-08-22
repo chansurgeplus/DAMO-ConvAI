@@ -23,7 +23,6 @@ accelerator.init_trackers(
     init_kwargs={
         "wandb": {
             "name": f"pro_{str(time.time())}",
-            "project": "preference-ranking-optimization",
         },
     }
 )

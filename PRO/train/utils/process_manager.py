@@ -7,6 +7,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 from accelerate.logging import get_logger
+from logging import Logger
 from .data_manager import HH_DataManager, Summarize_DataManager
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
@@ -22,6 +23,29 @@ elif args.task == "summarize":
     from utils.metrics_summarize import create_reward_fn
 else:
     raise ValueError("Invalid task name!")
+
+
+class WanDBThroughLogger(Logger):
+
+    def __init__(self, accelerator):
+        self.wandb = accelerator.get_tracker('wandb')
+        self.logger = get_logger(__name__)
+    
+    def log_loss(self, loss: float, step: int):
+        self.wandb.log({
+            "loss": loss
+        }, step=step)
+    
+    def info(self, msg, **kwargs):
+        if type(msg) == str:
+            self.wandb.log({
+                "message": msg,
+            })
+        elif type(msg) == dict:
+            self.wandb.log(msg, **kwargs)
+        
+        self.logger.info(msg)
+
 
 class ProcessManager():
     def __init__(
@@ -53,7 +77,7 @@ class ProcessManager():
         self.model = AutoModelForCausalLM.from_pretrained(self.model_path,config=self.model_config)
         self.model.resize_token_embeddings(len(self.data_manager.tokenizer))
         
-        self.logger = get_logger(__name__)
+        self.logger = WanDBThroughLogger(self.accelerator)
     
     def compute_loss(self, model, batch, print_loss):
         """
@@ -268,15 +292,25 @@ class ProcessManager():
                             print_loss = [l / self.accelerator.gradient_accumulation_steps for l in print_loss]
                             total_loss = sum(print_loss)
                             print_loss_info = "\nstage_{}_loss: {:.4f}".format(training_stage, total_loss)
-                            
+
                             print_loss_info += "".join(
                                 [" | rank_{}_loss: {:.4f}".format(n+1, print_loss[n]) for n in range(training_stage-1)]
                             )
-                            print_loss_info += " | sft_loss: {:.4f}".format(print_loss[training_stage-1])
-                            
+                            rank_losses = {}
                             for n in range(training_stage-1):
+                                rank_losses[f"rank_{n + 1}_loss"] = print_loss[n]
                                 writer.add_scalar("stage_{}/rank_{}_loss".format(training_stage, n+1), print_loss[n], completed_steps)
+
+                            print_loss_info += " | sft_loss: {:.4f}".format(print_loss[training_stage-1])
                             writer.add_scalar("stage_{}/sft_loss".format(training_stage), print_loss[training_stage-1], completed_steps)
+
+                            # self.logger.info(msg={
+                            #     f"stage_{training_stage}_loss": total_loss,
+                            #     **rank_losses,
+                            #     "sft_loss": print_loss[training_stage-1]
+                            # }, step=completed_steps)
+
+                            self.logger.log_loss(print_loss[training_stage-1], step=completed_steps)
                             
                             self.logger.info(f"Step {completed_steps} | " + print_loss_info)
                             writer.add_scalar("stage_{}/loss".format(training_stage), total_loss, completed_steps) # record on tensorboard                      
