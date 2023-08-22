@@ -224,7 +224,8 @@ class ProcessManager():
                     ) / args.gradient_accumulation_steps
                 ) * args.num_train_epochs
             ),
-            disable=not self.accelerator.is_local_main_process
+            disable=not self.accelerator.is_local_main_process,
+            desc="Training..."
         )
         completed_steps = 0
         best_step = -1

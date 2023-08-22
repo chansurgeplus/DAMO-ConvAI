@@ -6,6 +6,7 @@ id=$1
 data_path=$2
 ranking_len=$3
 mkdir -p $root_dir/logs/$id/$ranking_len
+export WANDB_API_KEY=c0a4d9df0a801da1b53257f0c63d8283af4ae526
 accelerate launch --num_processes 1 --config_file ds_config.yaml main.py \
     --task hh \
     --train_file_path $root_dir/data/${data_path} \
@@ -13,6 +14,7 @@ accelerate launch --num_processes 1 --config_file ds_config.yaml main.py \
     --validation_file_name sampled_dev.json \
     --output_dir $root_dir/checkpoints/index_$id/stage_$ranking_len \
     --log_path $root_dir/logs/$id/$ranking_len \
+    --log_with=wandb
     --index $id \
     --seed 42 \
     --temperature 1 \
