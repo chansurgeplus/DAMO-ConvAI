@@ -49,13 +49,14 @@ class JSONPreProcessedDataset(Dataset):
 class HH_DataManager():
     def __init__(self, config, training_stage, tokenizer_path = args.model_name_or_path):
         self.config = config
-        if self.config.architectures[0].lower() == "llamaforcausallm":
-            self.tokenizer = LlamaTokenizer.from_pretrained(tokenizer_path, use_fast=False)
-            self.tokenizer.unk_token = "<unk>"
-            self.tokenizer.bos_token = "<s>"
-            self.tokenizer.eos_token = "</s>"
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
+        # if self.config.architectures[0].lower() == "llamaforcausallm":
+        #     self.tokenizer = LlamaTokenizer.from_pretrained(tokenizer_path, use_fast=False)
+        #     self.tokenizer.unk_token = "<unk>"
+        #     self.tokenizer.bos_token = "<s>"
+        #     self.tokenizer.eos_token = "</s>"
+        # else:
+        #     self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
         
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.padding = True

@@ -6,7 +6,7 @@ id=$1
 data_path=$2
 ranking_len=$3
 mkdir -p $root_dir/logs/$id/$ranking_len
-accelerate launch --num_processes 7 --config_file ds_config.yaml main.py \
+accelerate launch --num_processes 1 --config_file ds_config.yaml main.py \
     --task hh \
     --train_file_path $root_dir/data/${data_path} \
     --validation_file_path $root_dir/data/hh_dev \
@@ -17,12 +17,12 @@ accelerate launch --num_processes 7 --config_file ds_config.yaml main.py \
     --seed 42 \
     --temperature 1 \
     --sft_weight 0.05 \
-    --num_train_epochs 2 \
+    --num_train_epochs 1 \
     --training_stage_num $ranking_len \
     --block_size 512 \
     --learning_rate 5e-6 \
-    --per_device_train_batch_size 2 \
-    --per_device_eval_batch_size 28 \
-    --model_name_or_path decapoda-research/llama-7b-hf \
+    --per_device_train_batch_size 16 \
+    --per_device_eval_batch_size 32 \
+    --model_name_or_path cerebras/Cerebras-GPT-111M \
     --do_train \
-    --do_validation > $root_dir/logs/$id/$ranking_len/train_detail.log 2>&1
+    --do_validation
