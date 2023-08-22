@@ -14,7 +14,6 @@ accelerate launch --num_processes 1 --config_file ds_config.yaml main.py \
     --validation_file_name sampled_dev.json \
     --output_dir $root_dir/checkpoints/index_$id/stage_$ranking_len \
     --log_path $root_dir/logs/$id/$ranking_len \
-    --log_with=wandb
     --index $id \
     --seed 42 \
     --temperature 1 \

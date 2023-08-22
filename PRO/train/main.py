@@ -13,7 +13,7 @@ from datetime import timedelta
 
 
 kwargs = InitProcessGroupKwargs(timeout=timedelta(seconds=5400))
-accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps, kwargs_handlers=[kwargs])
+accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps, log_with="wandb", kwargs_handlers=[kwargs])
 args.gradient_accumulation_steps = accelerator.gradient_accumulation_steps
 log_filename = ""
 if args.do_train:
