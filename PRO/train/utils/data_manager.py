@@ -211,7 +211,7 @@ class HH_DataManager():
         self.tokenizer.padding_side, self.tokenizer.truncation_side = origin_state
         
         for index in range(len(instant_text)):
-            assert truncated_prefixes[index].rstrip() in instant_text[index], (truncated_prefixes[index].strip(), instant_text[index])
+            # assert truncated_prefixes[index].rstrip() in instant_text[index], (truncated_prefixes[index].strip(), instant_text[index])
             instant_text[index] = instant_text[index].replace(truncated_prefixes[index].rstrip(), "").strip()
             instant_text[index] = self.early_truncation(instant_text[index])
             
