@@ -55,13 +55,13 @@ class HH_DataManager():
         self.max_length = args.block_size
         self.pad_to_multiple_of = 8
         self.return_tensors = "pt"
-        self.add_special_tokens = True
+        self.add_special_tokens = False
         self.training_stage = training_stage
         self.stop_sequences = ["Human:", "human:", "Assistant:", "assistant:"]
     
     def batch_decode(self, model_output):
         # model_output = [batch, seq_len]
-        return self.tokenizer.batch_decode(model_output, skip_special_tokens=True)
+        return self.tokenizer.batch_decode(model_output, skip_special_tokens=self.add_special_tokens)
 
     def early_truncation(self, text):
         for stop in self.stop_sequences:
