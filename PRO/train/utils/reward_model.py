@@ -1,11 +1,18 @@
 import torch
 import torch.nn as nn
-from transformers import AutoConfig, AutoModelForSequenceClassification
+from transformers import AutoConfig, AutoModelForSequenceClassification, BitsAndBytesConfig
 from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXConfig, GPTNeoXModel, GPTNeoXPreTrainedModel
 from transformers.utils import ModelOutput
 from dataclasses import dataclass
 from typing import Literal, Optional
 
+
+quantization_config = BitsAndBytesConfig(
+   load_in_4bit=True,
+   bnb_4bit_quant_type="nf4",
+   bnb_4bit_use_double_quant=True,
+   bnb_4bit_compute_dtype=torch.bfloat16
+)
 
 # Thank OpenAssistant for their helpful code:
 # https://github.com/LAION-AI/Open-Assistant/blob/main/model/model_training/models/reward_model.py
@@ -38,7 +45,10 @@ class GPTNeoXRewardModel(GPTNeoXPreTrainedModel):
 
     def __init__(self, config):
         if type(config) == GPTNeoXConfig:
-            config = GPTNeoXRewardModelConfig.from_dict(config.to_dict())
+            config = GPTNeoXRewardModelConfig.from_dict({
+                **config.to_dict(),
+                "quantization_config": quantization_config
+            })
         super().__init__(config)
 
         self.gpt_neox = GPTNeoXModel(config)
