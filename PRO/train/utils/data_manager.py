@@ -55,7 +55,7 @@ class HH_DataManager():
         self.max_length = args.block_size
         self.pad_to_multiple_of = 8
         self.return_tensors = "pt"
-        self.add_special_tokens = False
+        self.add_special_tokens = True
         self.training_stage = training_stage
         self.stop_sequences = ["Human:", "human:", "Assistant:", "assistant:"]
     
