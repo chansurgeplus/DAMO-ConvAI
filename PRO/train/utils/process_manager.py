@@ -16,7 +16,7 @@ from transformers import (
     CONFIG_MAPPING,
     MODEL_MAPPING,
     AutoConfig,
-    AutoModelForCausalLM,
+    AutoModelForSeq2SeqLM,
 )
 import time
 from pathlib import Path
@@ -81,7 +81,7 @@ class ProcessManager():
             raise ValueError("Invalid task name!")
         
         # set model
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path,config=self.model_config)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_path,config=self.model_config)
         self.model.resize_token_embeddings(len(self.data_manager.tokenizer))
 
         self.exp_ts = time.time()
@@ -102,7 +102,7 @@ class ProcessManager():
         """
         batch_size = batch["labels"].shape[0]
         temp_training_stage = batch["labels"].shape[1]
-        sub_batches = [{key: batch[key][:,time,:] for key in ["input_ids", "attention_mask"]} for time in range(temp_training_stage)]
+        sub_batches = [{key: batch[key][:,time,:] for key in ["input_ids", "attention_mask", "labels"]} for time in range(temp_training_stage)]
         
         score_list = []
         suffix_mask_list = []
