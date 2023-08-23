@@ -1,13 +1,5 @@
 compute_environment: LOCAL_MACHINE
-deepspeed_config:
-  gradient_accumulation_steps: 8
-  gradient_clipping: 1.0
-  offload_optimizer_device: none
-  offload_param_device: none
-  zero3_init_flag: true
-  zero3_save_16bit_model: true
-  zero_stage: 2
-distributed_type: DEEPSPEED
+distributed_type: NO
 downcast_bf16: 'no'
 dynamo_backend: 'NO'
 fsdp_config: {}
