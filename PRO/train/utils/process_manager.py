@@ -137,14 +137,14 @@ class ProcessManager():
             neg_temperatures = pos_reward.view(-1, 1) - neg_reward # [batch, training_stage-time-1]
             pos_temperature = torch.max(neg_temperatures, dim=1).values # [batch]
             loss = torch.log(eps + torch.exp(scores[:, time] * pos_temperature) + torch.sum(torch.exp(scores[:, time+1:] * neg_temperatures), dim=1)) - scores[:, time] * pos_temperature # [batch]
-            loss = torch.mean(loss).to(local_outputs.hidden_states[0].dtype)
+            loss = torch.mean(loss).to(local_outputs.decoder_hidden_states[0].dtype)
             
             print_loss[time].append(loss.item())
             total_loss += loss
         
         sft_index = batch["sft_index"].view(batch_size, 1)
         sft_scores = torch.gather(input = sum_scores, dim = 1, index = sft_index).view(batch_size) #[batch]
-        sft_loss = torch.mean(-sft_scores).to(local_outputs.hidden_states[0].dtype)
+        sft_loss = torch.mean(-sft_scores).to(local_outputs.decoder_hidden_states[0].dtype)
         sft_loss = args.sft_weight * math.pow(temp_training_stage - 1, 2) * sft_loss
         total_loss += sft_loss
 
