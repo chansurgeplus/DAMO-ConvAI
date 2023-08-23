@@ -102,7 +102,7 @@ class ProcessManager():
         """
         batch_size = batch["labels"].shape[0]
         temp_training_stage = batch["labels"].shape[1]
-        sub_batches = [{key: batch[key][:,time,:] for key in ["input_ids", "attention_mask", "labels"]} for time in range(temp_training_stage)]
+        sub_batches = [{key: batch[key][:,time,:].contiguous() for key in ["input_ids", "attention_mask", "labels"]} for time in range(temp_training_stage)]
         
         score_list = []
         suffix_mask_list = []
