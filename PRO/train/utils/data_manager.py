@@ -48,7 +48,7 @@ class HH_DataManager():
         #     self.tokenizer.eos_token = "</s>"
         # else:
         #     self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False, add_prefix_space=True)
         
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.padding = True
