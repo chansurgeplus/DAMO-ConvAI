@@ -34,7 +34,7 @@ else:
 class WanDBThroughLogger(Logger):
 
     def __init__(self, accelerator, ts):
-        wandb.init(project="preference-ranking-optimization", name=f"pro_{str(ts)}")
+        wandb.init(project="preference-ranking-optimization", name=f"pro_{args.model_name_or_path.replace("/", "_")}_{str(ts)}")
         self.logger = get_logger(__name__)
     
     def log_loss(self, step: int, **kwargs):
