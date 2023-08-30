@@ -43,6 +43,12 @@ class WanDBThroughLogger(Logger):
             "step": step,
         })
     
+    def log_custom_step(self, step_name: str, step: int, **kwargs):
+        wandb.log({
+            **kwargs,
+            step_name: step,
+        })
+    
     def info(self, msg, **kwargs):
         if type(msg) == str:
             wandb.log({
@@ -251,24 +257,27 @@ class ProcessManager():
                         prefixes, suffixes = [], []
                 dev_reward = dev_reward / len(dev_res)
                 self.logger.info(f"Step 0 | Dev avg reward {dev_reward}")
+                self.logger.log_loss(step=0, dev_avg_reward=dev_reward)
+                # For log_step
+                self.logger.log_custom_step(step_name="log_step", step=0, dev_avg_reward=dev_reward)
                 model_to_save = None
 
         self.accelerator.wait_for_everyone()
         # Train!
+        total_log_steps = len(train_files) * math.ceil(
+                                math.ceil(
+                                    math.ceil(
+                                        dataset_length / args.per_device_train_batch_size
+                                    ) / self.accelerator.num_processes
+                                ) / args.gradient_accumulation_steps
+                            ) * args.num_train_epochs
         progress_bar = tqdm(
-            range(
-                len(train_files) * math.ceil(
-                    math.ceil(
-                        math.ceil(
-                            dataset_length / args.per_device_train_batch_size
-                        ) / self.accelerator.num_processes
-                    ) / args.gradient_accumulation_steps
-                ) * args.num_train_epochs
-            ),
+            range(total_log_steps),
             disable=not self.accelerator.is_local_main_process,
             desc="Training..."
         )
         completed_steps = 0
+        log_step = 0
         best_step = -1
         last_dev_reward = float('-inf')
         for epoch in range(args.num_train_epochs):
@@ -303,6 +312,7 @@ class ProcessManager():
                     if self.accelerator.sync_gradients:
                         completed_steps += 1
                         progress_bar.update(1)
+                        log_step += 1
                         self.accelerator.wait_for_everyone()
                         if self.accelerator.is_main_process:
                             print_loss = [sum(l) for l in print_loss]
@@ -326,6 +336,9 @@ class ProcessManager():
                                 **rank_losses,
                                 "sft_loss": print_loss[training_stage-1]
                             })
+
+                            # For log_step
+                            self.logger.log_custom_step(step_name="log_step", step=log_step)
                             
                             self.logger.info(f"Step {completed_steps} | " + print_loss_info)
                             writer.add_scalar("stage_{}/loss".format(training_stage), total_loss, completed_steps) # record on tensorboard                      
@@ -352,6 +365,9 @@ class ProcessManager():
                                         prefixes, suffixes = [], []
                                 dev_reward = dev_reward / len(dev_res)
                                 self.logger.info(f"Step {completed_steps} | Dev avg reward {dev_reward}")
+                                self.logger.log_loss(step=completed_steps, dev_avg_reward=dev_reward)
+                                # For log_step
+                                self.logger.log_custom_step(step_name="log_step", step=log_step, dev_avg_reward=dev_reward)
                                 if dev_reward > last_dev_reward:
                                     best_step = completed_steps
                                     self.logger.info(f"Step {completed_steps} checkpoint with higher Dev avg reward (the best checkpoint so far)")
